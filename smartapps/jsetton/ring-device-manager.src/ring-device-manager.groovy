@@ -357,6 +357,11 @@ private static getDeviceModel(kind, flow) {
         name: "Doorbell 2",
         handler: "Ring Video Doorbell"
       ]
+    case "doorbell_portal":
+      return [
+        name: "Peephole Cam",
+        handler: "Ring Video Doorbell"
+      ]
     case "lpd_v1":
     case "lpd_v2":
       return [
@@ -372,11 +377,13 @@ private static getDeviceModel(kind, flow) {
       ]
     // Security cams
     case "hp_cam_v1":
+    case "floodlight_v2":
       return [
         name: "Floodlight Cam",
         handler: "Ring Floodlight Cam"
       ]
     case "hp_cam_v2":
+    case "spotlightw_v2":
       return [
         name: "Spotlight Cam ${flow == "mount" ? "Mount" : "Wired"}",
         handler: "Ring Spotlight Cam",
@@ -393,6 +400,7 @@ private static getDeviceModel(kind, flow) {
         name: "Stick Up Cam",
         handler: "Ring Stick Up V1 Cam"
       ]
+    case "cocoa_camera":
     case "stickup_cam_lunar":
       return [
         name: "Stick Up Cam Battery",
@@ -401,6 +409,12 @@ private static getDeviceModel(kind, flow) {
     case "stickup_cam_elite":
       return [
         name: "Stick Up Cam Wired",
+        handler: "Ring Stick Up V2 Cam",
+        data: [wired: true]
+      ]
+    case "stickup_cam_mini":
+      return [
+        name: "Indoor Cam",
         handler: "Ring Stick Up V2 Cam",
         data: [wired: true]
       ]
