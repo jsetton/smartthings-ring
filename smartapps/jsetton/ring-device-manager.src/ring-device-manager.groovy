@@ -349,74 +349,81 @@ private static getDeviceModel(kind, flow) {
     case "doorbell_v3":
       return [
         name: "Doorbell",
-        handler: "Ring Video Doorbell"
+        handler: "Ring Video Doorbell",
+        data: [model: kind]
       ]
     case "doorbell_v4":
     case "doorbell_v5":
       return [
         name: "Doorbell 2",
-        handler: "Ring Video Doorbell"
+        handler: "Ring Video Doorbell",
+        data: [model: kind]
       ]
     case "doorbell_portal":
       return [
         name: "Peephole Cam",
-        handler: "Ring Video Doorbell"
+        handler: "Ring Video Doorbell",
+        data: [model: kind]
       ]
     case "lpd_v1":
     case "lpd_v2":
       return [
         name: "Doorbell Pro",
         handler: "Ring Video Doorbell",
-        data: [wired: true]
+        data: [model: kind, wired: true]
       ]
     case "jobx_v1":
       return [
         name: "Doorbell Elite",
         handler: "Ring Video Doorbell",
-        data: [wired: true]
+        data: [model: kind, wired: true]
       ]
     // Security cams
     case "hp_cam_v1":
     case "floodlight_v2":
       return [
         name: "Floodlight Cam",
-        handler: "Ring Floodlight Cam"
+        handler: "Ring Floodlight Cam",
+        data: [model: kind]
       ]
     case "hp_cam_v2":
     case "spotlightw_v2":
       return [
         name: "Spotlight Cam ${flow == "mount" ? "Mount" : "Wired"}",
         handler: "Ring Spotlight Cam",
-        data: [wired: true]
+        data: [model: kind, wired: true]
       ]
     case "stickup_cams_v4":
       return [
         name: "Spotlight Cam ${flow == "solar" ? "Solar" : "Battery"}",
-        handler: "Ring Spotlight Cam"
+        handler: "Ring Spotlight Cam",
+        data: [model: kind]
       ]
     case "stickup_cam":
     case "stickup_cam_v3":
       return [
         name: "Stick Up Cam",
-        handler: "Ring Stick Up V1 Cam"
+        handler: "Ring Stick Up V1 Cam",
+        data: [model: kind]
       ]
     case "cocoa_camera":
     case "stickup_cam_lunar":
       return [
         name: "Stick Up Cam Battery",
-        handler: "Ring Stick Up V2 Cam"
+        handler: "Ring Stick Up V2 Cam",
+        data: [model: kind]
       ]
     case "stickup_cam_elite":
       return [
         name: "Stick Up Cam Wired",
         handler: "Ring Stick Up V2 Cam",
-        data: [wired: true]
+        data: [model: kind, wired: true]
       ]
     case "stickup_cam_mini":
       return [
         name: "Indoor Cam",
         handler: "Ring Stick Up V2 Cam",
-        data: [wired: true]
+        data: [model: kind, wired: true]
       ]
   }
 }
