@@ -33,7 +33,7 @@ preferences {
 
 // Preference pages
 def prefDevices() {
-  if (!login())
+  if (!authToken)
     return prefCredentials()
 
   def options = deviceList.collect { [(it.id): "${it.label} (${it.model.name})"] }
@@ -68,15 +68,14 @@ def prefDevices() {
 }
 
 def prefCredentials() {
-  def isInstalled = username && password
   return dynamicPage(
     name: "prefCredentials",
     title: "Connect to Ring",
     nextPage: "prefDevices",
     install: false,
-    uninstall: isInstalled
+    uninstall: state.containsKey(session)
   ) {
-    if (isInstalled) {
+    if (state.session?.status == "failed") {
       section {
         paragraph "Please check the credentials you entered below.",
           title: "Login Failed",
@@ -84,15 +83,25 @@ def prefCredentials() {
       }
     }
 
-    section("Login Credentials") {
-      input "username", "email",
-        title: "Email",
-        description: "Ring account email",
-        required: true
-      input "password", "password",
-        title: "Password",
-        description: "Ring account password",
-        required: true
+    if (state.session?.status == "authCode") {
+      section("Account Verification") {
+        paragraph "Please enter the code sent to ${state.session.phoneNumber}."
+        input "authCode", "number",
+          title: "Verification Code",
+          description: "Ring account verification code",
+          required: true
+      }
+    } else {
+      section("Login Credentials") {
+        input "username", "email",
+          title: "Email",
+          description: "Ring account email",
+          required: true
+        input "password", "password",
+          title: "Password",
+          description: "Ring account password",
+          required: true
+      }
     }
   }
 }
@@ -163,7 +172,7 @@ def uninstallDevice(childDevice) {
 private getDeviceList() {
   def deviceList = []
   apiRequest(apiDevicesEndpoint, "GET") { resp ->
-    if (resp?.status == 200) {
+    if (resp.status == 200) {
       resp.data.values().flatten().each { device ->
         def deviceModel = getDeviceModel(device.kind, device.ring_cam_setup_flow)
         if (deviceModel) {
@@ -185,7 +194,7 @@ private getDeviceList() {
 
 private updateActiveAlerts() {
   apiRequest(apiActiveAlertsEndpoint, "GET") { resp ->
-    if (resp?.status == 200) {
+    if (resp.status == 200) {
       resp.data.each { alert ->
         log.debug "Received Alert: ${alert}"
         def child = getChildDevice(alert.doorbot_id.toString())
@@ -212,7 +221,7 @@ private updateActiveAlerts() {
 
 private updateDeviceStatus() {
   apiRequest(apiDevicesEndpoint, "GET") { resp ->
-    if (resp?.status == 200) {
+    if (resp.status == 200) {
       log.debug "Got data: ${resp.data}"
       allChildDevices.each { child ->
         def online = resp.data.values().flatten().any { device ->
@@ -229,7 +238,7 @@ private updateDeviceStatus() {
   }
 }
 
-private login() {
+private getAuthToken() {
   if (!settings.username || !settings.password)
     return false
 
@@ -256,16 +265,41 @@ private login() {
       ]
     ]
 
+    if (settings.authCode) {
+      if (state.session?.codeTimeout > now()) {
+        params.headers["2fa-support"] = "true"
+        params.headers["2fa-code"] = settings.authCode
+      }
+      // reset auth code setting
+      app.updateSetting('authCode', '')
+    }
+
     httpRequest(params, "POST") { resp ->
-      state.session = resp?.status != 200 ? null : [
-        accessToken: resp.data.access_token,
-        refreshToken: resp.data.refresh_token,
-        expiration: now() + resp.data.expires_in.toInteger() * 1000
-      ]
+      switch (resp.status) {
+        case 200: // Success
+          state.session = [
+            status: "ok",
+            accessToken: resp.data.access_token,
+            refreshToken: resp.data.refresh_token,
+            expiration: now() + resp.data.expires_in.toInteger() * 1000
+          ]
+          break
+        case 412: // Auth code needed
+          state.session = [
+            status: "authCode",
+            phoneNumber: "x" * (10 - resp.data.phone.length()) + resp.data.phone,
+            codeTimeout: now() + resp.data.next_time_in_secs.toInteger() * 1000
+          ]
+          break
+        default:
+          state.session = [
+            status: "failed"
+          ]
+      }
     }
   }
 
-  return state.session?.accessToken
+  return state.session?.status == "ok"
 }
 
 private apiRequest(endpoint, method = "GET", callback = {}) {
@@ -281,7 +315,7 @@ private apiRequest(endpoint, method = "GET", callback = {}) {
     ]
   ]
 
-  if (login()) {
+  if (authToken) {
     log.debug "API ${method.toUpperCase()} Request: ${params}"
     httpRequest(params, method) { resp -> callback(resp) }
   }
@@ -296,7 +330,7 @@ private httpRequest(params = [], method = "GET", callback = {}) {
     }
   } catch (e) {
     log.error "HTTP ${method.toUpperCase()} Exception: ${e}"
-    callback(null)
+    callback(e.response)
   }
 }
 
