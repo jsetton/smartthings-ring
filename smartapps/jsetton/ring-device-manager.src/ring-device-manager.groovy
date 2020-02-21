@@ -287,7 +287,7 @@ private getAuthToken() {
         case 412: // Auth code needed
           state.session = [
             status: "authCode",
-            phoneNumber: "x" * (10 - resp.data.phone.length()) + resp.data.phone,
+            phoneNumber: resp.data.phone,
             codeTimeout: now() + resp.data.next_time_in_secs.toInteger() * 1000
           ]
           break
