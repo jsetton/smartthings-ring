@@ -381,6 +381,7 @@ private static getDeviceModel(kind, flow) {
     case "doorbot":
     case "doorbell":
     case "doorbell_v3":
+    case "cocoa_doorbell":
       return [
         name: "Doorbell",
         handler: "Ring Video Doorbell",
@@ -393,6 +394,18 @@ private static getDeviceModel(kind, flow) {
         handler: "Ring Video Doorbell",
         data: [model: kind]
       ]
+    case "doorbell_scallop_lite":
+      return [
+        name: "Doorbell 3",
+        handler: "Ring Video Doorbell",
+        data: [model: kind]
+      ]
+    case "doorbell_scallop":
+      return [
+        name: "Doorbell 3 Plus",
+        handler: "Ring Video Doorbell",
+        data: [model: kind]
+      ]
     case "doorbell_portal":
       return [
         name: "Peephole Cam",
@@ -401,6 +414,7 @@ private static getDeviceModel(kind, flow) {
       ]
     case "lpd_v1":
     case "lpd_v2":
+    case "lpd_v4":
       return [
         name: "Doorbell Pro",
         handler: "Ring Video Doorbell",
