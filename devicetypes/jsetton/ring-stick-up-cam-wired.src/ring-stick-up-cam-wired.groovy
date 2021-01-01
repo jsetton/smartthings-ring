@@ -1,5 +1,5 @@
 /**
- *  Ring Spotlight Cam
+ *  Unofficial Ring Stick Up Cam Wired
  *
  *  Author:
  *      Jeremy Setton (jsetton)
@@ -17,20 +17,17 @@
  */
 metadata {
   definition (
-    name: "Ring Spotlight Cam",
+    name: "Unofficial Ring Stick Up Cam Wired",
     namespace: "jsetton",
-    author: "Jeremy Setton"
+    author: "Jeremy Setton",
+    ocfDeviceType: "oic.d.camera"
   ) {
     capability "Alarm"
-    capability "Battery"
     capability "Health Check"
     capability "Motion Sensor"
     capability "Refresh"
-    capability "Switch"
     capability "Sensor"
 
-    command "lightOff"
-    command "lightOn"
     command "sirenOff"
     command "sirenOn"
     command "sirenConfirm"
@@ -39,7 +36,6 @@ metadata {
 
     attribute "firstStatus",  "string"
     attribute "secondStatus", "string"
-    attribute "thirdStatus",  "string"
   }
 
   simulator {}
@@ -55,11 +51,6 @@ metadata {
       options: capabilityOptions.collect { it.name },
       defaultValue: capabilityMap.findResult { it.name == "secondCapability" ? it.defaultValue : null },
       required: false
-    input "thirdCapability", "enum",
-      title: "Third Capability",
-      options: capabilityOptions.collect { it.name },
-      defaultValue: capabilityMap.findResult { it.name == "thirdCapability" ? it.defaultValue : null },
-      required: false
   }
 
   tiles(scale: 2) {
@@ -69,16 +60,6 @@ metadata {
           label:'no motion', icon:"st.motion.motion.inactive", backgroundColor:"#ffffff"
         attributeState "motionActive",
           label:'motion', icon:"st.motion.motion.active", backgroundColor:"#00a0dc"
-        attributeState "switchOff",
-          label:'off', action:"lightOn", icon:"st.Lighting.light15", backgroundColor:"#ffffff", nextState:"switchTurningOn"
-        attributeState "switchOn",
-          label:'on', action:"lightOff", icon:"st.Lighting.light15", backgroundColor:"#00a0dc", nextState:"switchTurningOff"
-        attributeState "switchTurningOff",
-          label:'turning off', icon:"st.Lighting.light15", backgroundColor:"#ffffff"
-        attributeState "switchTurningOn",
-          label:'turning on', icon:"st.Lighting.light15", backgroundColor:"#00a0dc"
-        attributeState "switchUnavailable",
-          label:'unavailable', icon:"st.Lighting.light15", backgroundColor:"#ffffff"
         attributeState "alarmOff",
           label:'off', action:"sirenConfirm", icon:"st.alarm.beep.beep", backgroundColor:"#ffffff"
         attributeState "alarmSiren",
@@ -92,12 +73,6 @@ metadata {
         attributeState "alarmUnavailable",
           label:'unavailable', icon:"st.alarm.beep.beep", backgroundColor:"#ffffff"
       }
-      tileAttribute ("device.battery", key: "SECONDARY_CONTROL") {
-        attributeState "battery",
-          label:'Battery: ${currentValue}%', unit:""
-        attributeState "999",
-          label:''  // unavailable
-      }
     }
 
     standardTile("secondTile", "device.secondStatus", decoration: "flat", width: 2, height: 2) {
@@ -105,45 +80,6 @@ metadata {
         label:'no motion', icon:"st.motion.motion.inactive", backgroundColor:"#ffffff"
       state "motionActive",
         label:'motion', icon:"st.motion.motion.active", backgroundColor:"#00a0dc"
-      state "switchOff",
-        label:'off', action:"lightOn", icon:"st.Lighting.light15", backgroundColor:"#ffffff", nextState:"switchTurningOn"
-      state "switchOn",
-        label:'on', action:"lightOff", icon:"st.Lighting.light15", backgroundColor:"#00a0dc", nextState:"switchTurningOff"
-      state "switchTurningOff",
-        label:'turning\noff', icon:"st.Lighting.light15", backgroundColor:"#ffffff"
-      state "switchTurningOn",
-        label:'turning\non', icon:"st.Lighting.light15", backgroundColor:"#00a0dc"
-      state "switchUnavailable",
-        label:'unavailable', icon:"st.Lighting.light15", backgroundColor:"#ffffff"
-      state "alarmOff",
-        label:'off', action:"sirenConfirm", icon:"st.alarm.beep.beep", backgroundColor:"#ffffff"
-      state "alarmSiren",
-        label:'on', action:'sirenOff', icon:"st.alarm.beep.beep", backgroundColor:"#e86d13", nextState:"alarmTurningOff"
-      state "alarmConfirm",
-        label:'Are you sure?', action:"sirenOn", icon:"st.alarm.beep.beep", backgroundColor:"#ffffff", nextState:"alarmTurningOn"
-      state "alarmTurningOff",
-        label:'turning\noff', icon:"st.alarm.beep.beep", backgroundColor:"#ffffff"
-      state "alarmTurningOn",
-        label:'turning\non', icon:"st.alarm.beep.beep", backgroundColor:"#e86d13"
-      state "alarmUnavailable",
-        label:'unavailable', icon:"st.alarm.beep.beep", backgroundColor:"#ffffff"
-    }
-
-    standardTile("thirdTile", "device.thirdStatus", decoration: "flat", width: 2, height: 2) {
-      state "motionInactive",
-        label:'no motion', icon:"st.motion.motion.inactive", backgroundColor:"#ffffff"
-      state "motionActive",
-        label:'motion', icon:"st.motion.motion.active", backgroundColor:"#00a0dc"
-      state "switchOff",
-        label:'off', action:"lightOn", icon:"st.Lighting.light15", backgroundColor:"#ffffff", nextState:"switchTurningOn"
-      state "switchOn",
-        label:'on', action:"lightOff", icon:"st.Lighting.light15", backgroundColor:"#00a0dc", nextState:"switchTurningOff"
-      state "switchTurningOff",
-        label:'turning\noff', icon:"st.Lighting.light15", backgroundColor:"#ffffff"
-      state "switchTurningOn",
-        label:'turning\non', icon:"st.Lighting.light15", backgroundColor:"#00a0dc"
-      state "switchUnavailable",
-        label:'unavailable', icon:"st.Lighting.light15", backgroundColor:"#ffffff"
       state "alarmOff",
         label:'off', action:"sirenConfirm", icon:"st.alarm.beep.beep", backgroundColor:"#ffffff"
       state "alarmSiren",
@@ -164,7 +100,7 @@ metadata {
     }
 
     main "firstTile"
-    details(["firstTile", "secondTile", "thirdTile", "refresh"])
+    details(["firstTile", "secondTile", "refresh"])
   }
 }
 
@@ -216,20 +152,8 @@ def inactive() {
   sendCustomAttributeEvent(name: "motion", value: "inactive")
 }
 
-def off() {
-  log.debug "Executing 'off'"
-  lightOff()
-  sirenOff()
-}
-
-def on() {
-  log.debug "Executing 'on'"
-  lightOn()
-}
-
 def strobe() {
   log.debug "Executing 'strobe'"
-  lightOn()
 }
 
 def siren() {
@@ -239,18 +163,7 @@ def siren() {
 
 def both() {
   log.debug "Executing 'both'"
-  lightOn()
   sirenOn()
-}
-
-def lightOff() {
-  log.debug "Executing 'lightOff'"
-  parent?.sendDeviceCommand(device, "floodlight_light_off")
-}
-
-def lightOn() {
-  log.debug "Executing 'lightOn'"
-  parent?.sendDeviceCommand(device, "floodlight_light_on")
 }
 
 def sirenOff() {
@@ -277,17 +190,11 @@ def sirenConfirmReset() {
     sendCustomAttributeEvent(name: "alarm", value: "off", displayed: false)
 }
 
-def updateDeviceStatus(properties) {
+def updateDeviceStatus(device) {
   def status = [
-    battery: getDataValue("wired") ? 999 : properties.battery_life?: properties.battery_life_2?: 999,
-    light: properties.led_status?: "unavailable",
-    siren: properties.siren_status ? properties.siren_status.seconds_remaining?.toInteger() > 0 ? "siren" :
+    siren: device.siren_status ? device.siren_status.seconds_remaining?.toInteger() > 0 ? "siren" :
       isSirenConfirm ? "confirm" : "off" : "unavailable"
   ]
-  // battery
-  sendCustomAttributeEvent(name: "battery", value: status.battery, unit: "%", displayed: status.battery != 999)
-  // light
-  sendCustomAttributeEvent(name: "switch", value: status.light)
   // siren
   sendCustomAttributeEvent(name: "alarm", value: status.siren, displayed: device.currentValue("alarm") != "confirm")
 }
@@ -352,7 +259,6 @@ private static getCapabilityDescription(name, value) {
   switch (name) {
     case "alarm":   return "siren is ${value == "siren" ? "on" : value}"
     case "motion":  return "motion ${value == "active" ? "detected" : "cleared"}"
-    case "switch":  return "light is ${value}"
     default:        return "${name} is ${value}"
   }
 }
@@ -360,15 +266,13 @@ private static getCapabilityDescription(name, value) {
 private static getCapabilityMap() {
   [
     ["name": "firstCapability",  "attribute": "firstStatus",  "defaultValue": "Motion Detector"],
-    ["name": "secondCapability", "attribute": "secondStatus", "defaultValue": "Light"          ],
-    ["name": "thirdCapability",  "attribute": "thirdStatus",  "defaultValue": "Siren"          ]
+    ["name": "secondCapability", "attribute": "secondStatus", "defaultValue": "Siren"          ],
   ]
 }
 
 private static getCapabilityOptions() {
   [
     ["name": "Motion Detector", "capability": "motion", "defaultValue": "inactive"   ],
-    ["name": "Light",           "capability": "switch", "defaultValue": "unavailable"],
     ["name": "Siren",           "capability": "alarm",  "defaultValue": "unavailable"]
   ]
 }

@@ -1,5 +1,5 @@
 /**
- *  Unofficial Ring Floodlight Cam
+ *  Unofficial Ring Spotlight Cam Battery
  *
  *  Author:
  *      Jeremy Setton (jsetton)
@@ -17,12 +17,13 @@
  */
 metadata {
   definition (
-    name: "Unofficial Ring Floodlight Cam",
+    name: "Unofficial Ring Spotlight Cam Battery",
     namespace: "jsetton",
     author: "Jeremy Setton",
     ocfDeviceType: "oic.d.camera"
   ) {
     capability "Alarm"
+    capability "Battery"
     capability "Health Check"
     capability "Motion Sensor"
     capability "Refresh"
@@ -91,6 +92,10 @@ metadata {
           label:'turning on', icon:"st.alarm.beep.beep", backgroundColor:"#e86d13"
         attributeState "alarmUnavailable",
           label:'unavailable', icon:"st.alarm.beep.beep", backgroundColor:"#ffffff"
+      }
+      tileAttribute ("device.battery", key: "SECONDARY_CONTROL") {
+        attributeState "battery",
+          label:'Battery: ${currentValue}%', unit:""
       }
     }
 
@@ -272,12 +277,14 @@ def sirenConfirmReset() {
 }
 
 def updateDeviceStatus(properties) {
-  log.debug "Executing 'updateDeviceStatus' [properties: '${properties}']"
   def status = [
+    battery: properties.battery_life?: properties.battery_life_2?: 100,
     light: properties.led_status?: "unavailable",
     siren: properties.siren_status ? properties.siren_status.seconds_remaining?.toInteger() > 0 ? "siren" :
       isSirenConfirm ? "confirm" : "off" : "unavailable"
   ]
+  // battery
+  sendCustomAttributeEvent(name: "battery", value: status.battery, unit: "%")
   // light
   sendCustomAttributeEvent(name: "switch", value: status.light)
   // siren

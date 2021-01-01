@@ -1,5 +1,5 @@
 /**
- *  Ring Stick Up V1 Cam
+ *  Unofficial Ring Stick Up Cam V1
  *
  *  Author:
  *      Jeremy Setton (jsetton)
@@ -17,9 +17,10 @@
  */
 metadata {
   definition (
-    name: "Ring Stick Up V1 Cam",
+    name: "Unofficial Ring Stick Up Cam V1",
     namespace: "jsetton",
-    author: "Jeremy Setton"
+    author: "Jeremy Setton",
+    ocfDeviceType: "oic.d.camera"
   ) {
     capability "Battery"
     capability "Health Check"
@@ -46,8 +47,6 @@ metadata {
       tileAttribute ("device.battery", key: "SECONDARY_CONTROL") {
         attributeState "battery",
           label:'Battery: ${currentValue}%', unit:""
-        attributeState "999",
-          label:''  // unavailable
       }
     }
 
@@ -110,10 +109,10 @@ def inactive() {
 
 def updateDeviceStatus(properties) {
   def status = [
-    battery: properties.battery_life?: properties.battery_life_2?: 999,
+    battery: properties.battery_life?: properties.battery_life_2?: 100,
   ]
   // battery
-  sendEvent(name: "battery", value: status.battery, unit: "%", displayed: status.battery != 999)
+  sendEvent(name: "battery", value: status.battery, unit: "%")
 }
 
 def updateHealthStatus(status) {

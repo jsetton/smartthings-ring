@@ -27,19 +27,84 @@ definition(
 )
 
 preferences {
-  page(name: "prefDevices")
-  page(name: "prefCredentials")
+  page(name: "loginPage")
+  page(name: "authCodePage")
+  page(name: "authFailurePage")
+  page(name: "deviceListPage")
 }
 
 // Preference pages
-def prefDevices() {
+def loginPage() {
+  if (authToken)
+    return deviceListPage()
+
+  return dynamicPage(
+    name: "loginPage",
+    title: "Connect to Ring",
+    nextPage: "authCodePage",
+    install: false,
+    uninstall: state.containsKey(session)
+  ) {
+    section("Login Credentials") {
+      input "username", "email",
+        title: "Email",
+        description: "Ring account email",
+        required: true
+      input "password", "password",
+        title: "Password",
+        description: "Ring account password",
+        required: true
+    }
+  }
+}
+
+def authCodePage() {
+  if (authToken)
+    return deviceListPage()
+
+  if (state.session?.status != "authCode")
+    return authFailurePage()
+
+  return dynamicPage(
+    name: "authCodePage",
+    title: "Connect to Ring",
+    nextPage: "deviceListPage",
+    install: false,
+    uninstall: true
+  ) {
+    section("Account Verification") {
+      paragraph "Please enter the code sent to ${state.session.phoneNumber}."
+      input "authCode", "number",
+        title: "Verification Code",
+        description: "Ring account verification code",
+        required: true
+    }
+  }
+}
+
+def authFailurePage() {
+  return dynamicPage(
+    name: "authFailurePage",
+    title: "Connect to Ring",
+    install: false,
+    uninstall: true
+  ) {
+    section {
+      paragraph "please check the credentials you entered.",
+        title: "Login Failed",
+        image: "${iconUrl}/caution.png"
+    }
+  }
+}
+
+def deviceListPage() {
   if (!authToken)
-    return prefCredentials()
+    return authFailurePage()
 
   def options = deviceList.collect { [(it.id): "${it.label} (${it.model.name})"] }
   if (options) {
     return dynamicPage(
-      name: "prefDevices",
+      name: "deviceListPage",
       title: "Device List",
       install: true,
       uninstall: true
@@ -53,7 +118,7 @@ def prefDevices() {
     }
   } else {
     return dynamicPage(
-      name: "prefDevices",
+      name: "deviceListPage",
       title: "Error",
       install: false,
       uninstall: true
@@ -62,45 +127,6 @@ def prefDevices() {
         paragraph "Please check your Ring account has linked devices.",
           title: "No Device Found",
           image: "${iconUrl}/caution.png"
-      }
-    }
-  }
-}
-
-def prefCredentials() {
-  return dynamicPage(
-    name: "prefCredentials",
-    title: "Connect to Ring",
-    nextPage: "prefDevices",
-    install: false,
-    uninstall: state.containsKey(session)
-  ) {
-    if (state.session?.status == "failed") {
-      section {
-        paragraph "Please check the credentials you entered below.",
-          title: "Login Failed",
-          image: "${iconUrl}/caution.png"
-      }
-    }
-
-    if (state.session?.status == "authCode") {
-      section("Account Verification") {
-        paragraph "Please enter the code sent to ${state.session.phoneNumber}."
-        input "authCode", "number",
-          title: "Verification Code",
-          description: "Ring account verification code",
-          required: true
-      }
-    } else {
-      section("Login Credentials") {
-        input "username", "email",
-          title: "Email",
-          description: "Ring account email",
-          required: true
-        input "password", "password",
-          title: "Password",
-          description: "Ring account password",
-          required: true
       }
     }
   }
@@ -384,32 +410,32 @@ private static getDeviceModel(kind, flow) {
     case "cocoa_doorbell":
       return [
         name: "Doorbell",
-        handler: "Ring Video Doorbell",
+        handler: "Unofficial Ring Video Doorbell",
         data: [model: kind]
       ]
     case "doorbell_v4":
     case "doorbell_v5":
       return [
         name: "Doorbell 2",
-        handler: "Ring Video Doorbell",
+        handler: "Unofficial Ring Video Doorbell",
         data: [model: kind]
       ]
     case "doorbell_scallop_lite":
       return [
         name: "Doorbell 3",
-        handler: "Ring Video Doorbell",
+        handler: "Unofficial Ring Video Doorbell",
         data: [model: kind]
       ]
     case "doorbell_scallop":
       return [
         name: "Doorbell 3 Plus",
-        handler: "Ring Video Doorbell",
+        handler: "Unofficial Ring Video Doorbell",
         data: [model: kind]
       ]
     case "doorbell_portal":
       return [
         name: "Peephole Cam",
-        handler: "Ring Video Doorbell",
+        handler: "Unofficial Ring Video Doorbell",
         data: [model: kind]
       ]
     case "lpd_v1":
@@ -417,61 +443,61 @@ private static getDeviceModel(kind, flow) {
     case "lpd_v4":
       return [
         name: "Doorbell Pro",
-        handler: "Ring Video Doorbell",
-        data: [model: kind, wired: true]
+        handler: "Unofficial Ring Video Doorbell Pro",
+        data: [model: kind]
       ]
     case "jobx_v1":
       return [
         name: "Doorbell Elite",
-        handler: "Ring Video Doorbell",
-        data: [model: kind, wired: true]
+        handler: "Unofficial Ring Video Doorbell Pro",
+        data: [model: kind]
       ]
     // Security cams
     case "hp_cam_v1":
     case "floodlight_v2":
       return [
         name: "Floodlight Cam",
-        handler: "Ring Floodlight Cam",
+        handler: "Unofficial Ring Floodlight Cam",
         data: [model: kind]
       ]
     case "hp_cam_v2":
     case "spotlightw_v2":
       return [
         name: "Spotlight Cam ${flow == "mount" ? "Mount" : "Wired"}",
-        handler: "Ring Spotlight Cam",
-        data: [model: kind, wired: true]
+        handler: "Unofficial Ring Floodlight Cam",
+        data: [model: kind]
       ]
     case "stickup_cams_v4":
       return [
         name: "Spotlight Cam ${flow == "solar" ? "Solar" : "Battery"}",
-        handler: "Ring Spotlight Cam",
+        handler: "Unofficial Ring Spotlight Cam Battery",
         data: [model: kind]
       ]
     case "stickup_cam":
     case "stickup_cam_v3":
       return [
         name: "Stick Up Cam",
-        handler: "Ring Stick Up V1 Cam",
+        handler: "Unofficial Ring Stick Up Cam V1",
         data: [model: kind]
       ]
     case "cocoa_camera":
     case "stickup_cam_lunar":
       return [
         name: "Stick Up Cam Battery",
-        handler: "Ring Stick Up V2 Cam",
+        handler: "Unofficial Ring Stick Up Cam Battery",
         data: [model: kind]
       ]
     case "stickup_cam_elite":
       return [
         name: "Stick Up Cam Wired",
-        handler: "Ring Stick Up V2 Cam",
-        data: [model: kind, wired: true]
+        handler: "Unofficial Ring Stick Up Cam Wired",
+        data: [model: kind]
       ]
     case "stickup_cam_mini":
       return [
         name: "Indoor Cam",
-        handler: "Ring Stick Up V2 Cam",
-        data: [model: kind, wired: true]
+        handler: "Unofficial Ring Stick Up Cam Wired",
+        data: [model: kind]
       ]
   }
 }
