@@ -1,5 +1,5 @@
 /**
- *  Ring Stick Up V2 Cam
+ *  Unofficial Ring Stick Up Cam Battery
  *
  *  Author:
  *      Jeremy Setton (jsetton)
@@ -17,9 +17,10 @@
  */
 metadata {
   definition (
-    name: "Ring Stick Up V2 Cam",
+    name: "Unofficial Ring Stick Up Cam Battery",
     namespace: "jsetton",
-    author: "Jeremy Setton"
+    author: "Jeremy Setton",
+    ocfDeviceType: "oic.d.camera"
   ) {
     capability "Alarm"
     capability "Battery"
@@ -76,8 +77,6 @@ metadata {
       tileAttribute ("device.battery", key: "SECONDARY_CONTROL") {
         attributeState "battery",
           label:'Battery: ${currentValue}%', unit:""
-        attributeState "999",
-          label:''  // unavailable
       }
     }
 
@@ -198,12 +197,12 @@ def sirenConfirmReset() {
 
 def updateDeviceStatus(device) {
   def status = [
-    battery: getDataValue("wired") ? 999 : device.battery_life?: device.battery_life_2?: 999,
+    battery: device.battery_life?: device.battery_life_2?: 100,
     siren: device.siren_status ? device.siren_status.seconds_remaining?.toInteger() > 0 ? "siren" :
       isSirenConfirm ? "confirm" : "off" : "unavailable"
   ]
   // battery
-  sendCustomAttributeEvent(name: "battery", value: status.battery, unit: "%", displayed: status.battery != 999)
+  sendCustomAttributeEvent(name: "battery", value: status.battery, unit: "%")
   // siren
   sendCustomAttributeEvent(name: "alarm", value: status.siren, displayed: device.currentValue("alarm") != "confirm")
 }

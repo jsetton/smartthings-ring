@@ -1,5 +1,5 @@
 /**
- *  Unofficial Ring Video Doorbell
+ *  Unofficial Ring Video Doorbell Pro
  *
  *  Author:
  *      Jeremy Setton (jsetton)
@@ -17,12 +17,11 @@
  */
 metadata {
   definition (
-    name: "Unofficial Ring Video Doorbell",
+    name: "Unofficial Ring Video Doorbell Pro",
     namespace: "jsetton",
     author: "Jeremy Setton",
     ocfDeviceType: "x.com.st.d.doorbell"
   ) {
-    capability "Battery"
     capability "Button"
     capability "Health Check"
     capability "Motion Sensor"
@@ -64,10 +63,6 @@ metadata {
           label:'off', icon: "${iconUrl}/doorbell.png", backgroundColor:"#ffffff"
         attributeState "doorbellPushed",
           label:'ding!', icon: "${iconUrl}/doorbell.png", backgroundColor:"#00a0dc"
-      }
-      tileAttribute ("device.battery", key: "SECONDARY_CONTROL") {
-        attributeState "battery",
-          label:'Battery: ${currentValue}%', unit:""
       }
     }
 
@@ -154,11 +149,7 @@ def release() {
 }
 
 def updateDeviceStatus(properties) {
-  def status = [
-    battery: properties.battery_life?: properties.battery_life_2?: 100,
-  ]
-  // battery
-  sendCustomAttributeEvent(name: "battery", value: status.battery, unit: "%")
+  // no device status to update
 }
 
 def updateHealthStatus(status) {
